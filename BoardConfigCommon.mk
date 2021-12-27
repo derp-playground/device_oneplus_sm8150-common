@@ -120,6 +120,9 @@ ODM_MANIFEST_FILES += $(VENDOR_PATH)/manifest-qva.xml
 TARGET_INIT_VENDOR_LIB := //$(VENDOR_PATH):libinit_oneplus-sm8150
 TARGET_RECOVERY_DEVICE_MODULES := libinit_oneplus-sm8150
 
+# HWUI
+HWUI_COMPILE_FOR_PERF := true
+
 # Lineage Health
 TARGET_HEALTH_CHARGING_CONTROL_CHARGING_PATH := /sys/class/power_supply/battery/op_disable_charge
 TARGET_HEALTH_CHARGING_CONTROL_CHARGING_ENABLED := 0
