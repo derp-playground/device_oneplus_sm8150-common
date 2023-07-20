@@ -507,4 +507,7 @@
     <!-- Type of the double tap sensor. Empty if double tap is not supported. -->
     <string name="config_dozeDoubleTapSensorType" translatable="false">org.derp.sensor.double_tap</string>
 
+    <!-- Maximum strength, in percentage, supported by bright color reduction. -->
+    <integer name="config_reduceBrightColorsStrengthMax">120</integer>
+
 </resources>
