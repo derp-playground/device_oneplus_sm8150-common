@@ -79,4 +79,9 @@
 
     <!-- Whether devices suports in-display fingerprint when screen is off -->
     <bool name="config_supportsScreenOffUdfps">true</bool>
+
+    <string-array name="config_cameraAuxPackageAllowList" translatable="false">
+        <item>org.derpfest.flash</item>
+        <item>org.derpfest.flash.dev</item>
+    </string-array>
 </resources>
