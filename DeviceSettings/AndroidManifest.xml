@@ -45,6 +45,9 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
             <meta-data
+                android:name="com.android.settings.order"
+                android:value="-265" />
+            <meta-data
                 android:name="com.android.settings.icon"
                 android:resource="@drawable/ic_settings_device" />
             <meta-data
