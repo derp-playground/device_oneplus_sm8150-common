@@ -140,10 +140,6 @@ public class TouchKeyHandler implements DeviceKeyHandler {
         return null;
     }
 
-    public void onPocketStateChanged(boolean inPocket) {
-        mInPocket = inPocket;
-    }
-
     private boolean hasSetupCompleted() {
         return Settings.Secure.getInt(mContext.getContentResolver(),
                 Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
