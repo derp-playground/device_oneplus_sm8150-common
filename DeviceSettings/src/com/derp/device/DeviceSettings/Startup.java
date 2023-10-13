@@ -81,9 +81,6 @@ public class Startup extends BroadcastReceiver {
                 dePrefsEditor.commit();
                 oldPrefsEditor.commit();
             }
-
-            // Touchscreen gestures
-            TouchscreenGestureSettings.MainSettingsFragment.restoreTouchscreenGestureStates(context);
         }
 
         // restoring state from DE shared preferences
