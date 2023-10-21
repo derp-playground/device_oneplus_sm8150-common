@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.os.UserHandle;
 import android.provider.Settings;
 import androidx.preference.SwitchPreference;
+import androidx.preference.PreferenceManager;
 
 import android.media.AudioManager;
 
@@ -33,15 +34,10 @@ public class Constants {
     // Broadcast action for settings update
     static final String UPDATE_PREFS_ACTION = "com.derp.device.DeviceSettings.UPDATE_SETTINGS";
 
-    // Shared preferences
-    private static final String DE_PREF_FILE_NAME = "device_settings";
-
     // Preference keys
     public static final String NOTIF_SLIDER_TOP_KEY = "keycode_top_position";
     public static final String NOTIF_SLIDER_MIDDLE_KEY = "keycode_middle_position";
     public static final String NOTIF_SLIDER_BOTTOM_KEY = "keycode_bottom_position";
-    public static final String NOTIF_SLIDER_MUTE_MEDIA_KEY = "slider_mute_media";
-    private static final String NOTIF_SLIDER_MUTE_MEDIA_LEVEL_KEY = "slider_mute_media_level";
 
     // Button prefs
     public static final String NOTIF_SLIDER_TOP_PREF = "pref_keycode_top_position";
@@ -74,6 +70,10 @@ public class Constants {
     public static final Map<Integer, String> sKeyMap = new HashMap<>();
     public static final Map<String, Integer> sKeyDefaultMap = new HashMap<>();
 
+    public static final String ACTION_UPDATE_SLIDER_POSITION
+            = "com.derp.device.DeviceSettings.UPDATE_SLIDER_POSITION";
+    public static final String EXTRA_SLIDER_POSITION = "position";
+
     // Broadcast extra: keycode mapping (int[]: key = gesture ID, value = keycode)
     static final String UPDATE_EXTRA_KEYCODE_MAPPING = "keycode_mappings";
     // Broadcast extra: assigned actions (int[]: key = gesture ID, value = action)
@@ -101,25 +101,5 @@ public class Constants {
     public static void setPreferenceInt(Context context, String key, int value) {
         Settings.System.putIntForUser(context.getContentResolver(),
                 sStringKeyPreferenceMap.get(key), value, UserHandle.USER_CURRENT);
-    }
-
-    public static void setLastMediaLevel(Context context, int level) {
-        Settings.System.putIntForUser(context.getContentResolver(),
-                NOTIF_SLIDER_MUTE_MEDIA_LEVEL_KEY, level, UserHandle.USER_CURRENT);
-    }
-
-    public static int getLastMediaLevel(Context context) {
-        return Settings.System.getIntForUser(context.getContentResolver(),
-                NOTIF_SLIDER_MUTE_MEDIA_LEVEL_KEY, 80, UserHandle.USER_CURRENT);
-    }
-
-    public static boolean getIsMuteMediaEnabled(Context context) {
-        return Settings.System.getIntForUser(context.getContentResolver(),
-                NOTIF_SLIDER_MUTE_MEDIA_KEY, 0, UserHandle.USER_CURRENT) == 1;
-    }
-
-    public static SharedPreferences getDESharedPrefs(Context context) {
-        return context.createDeviceProtectedStorageContext()
-                .getSharedPreferences(DE_PREF_FILE_NAME, Context.MODE_PRIVATE);
     }
 }

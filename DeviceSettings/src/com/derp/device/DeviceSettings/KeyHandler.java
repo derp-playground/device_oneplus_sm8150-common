@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2021 Yet Another AOSP Project
+ * Copyright (C) 2015-2016 The CyanogenMod Project
+ * Copyright (C) 2017 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +17,40 @@
 
 package com.derp.device.DeviceSettings;
 
+import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.res.Resources;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
+import android.media.session.MediaSessionLegacyHelper;
+import android.os.Handler;
+import android.os.Message;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+import android.os.SystemClock;
+import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.Settings;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
 
 import com.android.internal.os.DeviceKeyHandler;
+import com.android.internal.util.ArrayUtils;
+
+import com.derp.device.DeviceSettings.Constants;
 
 public class KeyHandler implements DeviceKeyHandler {
 
     private static final String TAG = KeyHandler.class.getSimpleName();
+    private static final int GESTURE_REQUEST = 1;
 
     private static final SparseIntArray sSupportedSliderZenModes = new SparseIntArray();
     private static final SparseIntArray sSupportedSliderRingModes = new SparseIntArray();
@@ -47,23 +68,34 @@ public class KeyHandler implements DeviceKeyHandler {
         sSupportedSliderRingModes.put(Constants.KEY_VALUE_VIBRATE, AudioManager.RINGER_MODE_VIBRATE);
         sSupportedSliderRingModes.put(Constants.KEY_VALUE_NORMAL, AudioManager.RINGER_MODE_NORMAL);
 
-        sSupportedSliderHaptics.put(Constants.KEY_VALUE_TOTAL_SILENCE, VibrationEffect.EFFECT_THUD);
+        sSupportedSliderHaptics.put(Constants.KEY_VALUE_TOTAL_SILENCE, VibrationEffect.EFFECT_HEAVY_CLICK);
         sSupportedSliderHaptics.put(Constants.KEY_VALUE_SILENT, VibrationEffect.EFFECT_DOUBLE_CLICK);
-        sSupportedSliderHaptics.put(Constants.KEY_VALUE_PRIORTY_ONLY, VibrationEffect.EFFECT_POP);
-        sSupportedSliderHaptics.put(Constants.KEY_VALUE_VIBRATE, VibrationEffect.EFFECT_HEAVY_CLICK);
+        sSupportedSliderHaptics.put(Constants.KEY_VALUE_PRIORTY_ONLY, VibrationEffect.EFFECT_HEAVY_CLICK);
+        sSupportedSliderHaptics.put(Constants.KEY_VALUE_VIBRATE, VibrationEffect.EFFECT_TICK);
         sSupportedSliderHaptics.put(Constants.KEY_VALUE_NORMAL, -1);
     }
 
     private final Context mContext;
+    private final PowerManager mPowerManager;
     private final NotificationManager mNotificationManager;
     private final AudioManager mAudioManager;
+    private SensorManager mSensorManager;
+    private Sensor mProximitySensor;
     private Vibrator mVibrator;
+    WakeLock mProximityWakeLock;
+    WakeLock mGestureWakeLock;
+    private int mProximityTimeOut;
     private int mPrevKeyCode = 0;
+    private boolean mProximityWakeSupported;
 
     public KeyHandler(Context context) {
         mContext = context;
-        mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mNotificationManager
+                = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mGestureWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "GestureWakeLock");
 
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         if (mVibrator == null || !mVibrator.hasVibrator()) {
@@ -76,16 +108,15 @@ public class KeyHandler implements DeviceKeyHandler {
                 Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
     }
 
-    @Override
     public KeyEvent handleKeyEvent(KeyEvent event) {
-        final int scanCode = event.getScanCode();
-        final String keyCode = Constants.sKeyMap.get(scanCode);
-        int keyCodeValue;
+        int scanCode = event.getScanCode();
+        String keyCode = Constants.sKeyMap.get(scanCode);
+        int keyCodeValue = 0;
 
         try {
             keyCodeValue = Constants.getPreferenceInt(mContext, keyCode);
         } catch (Exception e) {
-            return event;
+             return event;
         }
 
         if (!hasSetupCompleted()) {
@@ -94,7 +125,7 @@ public class KeyHandler implements DeviceKeyHandler {
 
         // We only want ACTION_UP event
         if (event.getAction() != KeyEvent.ACTION_UP) {
-            return event;
+            return null;
         }
 
         doHapticFeedback(sSupportedSliderHaptics.get(keyCodeValue));
@@ -102,32 +133,31 @@ public class KeyHandler implements DeviceKeyHandler {
         if (mPrevKeyCode == Constants.KEY_VALUE_TOTAL_SILENCE)
             doHapticFeedback(sSupportedSliderHaptics.get(keyCodeValue));
         mNotificationManager.setZenMode(sSupportedSliderZenModes.get(keyCodeValue), null, TAG);
-
-        if (Constants.getIsMuteMediaEnabled(mContext)) {
-            final int max = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-            final int curr = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            if (keyCodeValue == Constants.KEY_VALUE_SILENT) {
-                // going into silent:
-                // saving current media volume and setting to 0
-                Constants.setLastMediaLevel(mContext, Math.round((float)curr * 100f / (float)max));
-                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                        0, AudioManager.FLAG_SHOW_UI);
-            } else if (mPrevKeyCode == Constants.KEY_VALUE_SILENT && curr == 0) {
-                // going out of silent:
-                // setting media volume back if and only if current volume is still 0
-                final int last = Constants.getLastMediaLevel(mContext);
-                mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-                        Math.round((float)max * (float)last / 100f), AudioManager.FLAG_SHOW_UI);
-            }
-        }
-
         mPrevKeyCode = keyCodeValue;
+        int position = scanCode == 601 ? 2 : scanCode == 602 ? 1 : 0;
+        sendUpdateBroadcast(position);
         return null;
+    }
+
+    private void sendUpdateBroadcast(int position) {
+        Intent intent = new Intent(Constants.ACTION_UPDATE_SLIDER_POSITION);
+        intent.putExtra(Constants.EXTRA_SLIDER_POSITION, position);
+        mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
+        intent.setFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);
+        Log.d(TAG, "slider change to positon " + position);
     }
 
     private void doHapticFeedback(int effect) {
         if (mVibrator != null && mVibrator.hasVibrator() && effect != -1) {
             mVibrator.vibrate(VibrationEffect.get(effect));
         }
+    }
+
+    public void handleNavbarToggle(boolean enabled) {
+        // do nothing
+    }
+
+    public boolean canHandleKeyEvent(KeyEvent event) {
+        return false;
     }
 }
