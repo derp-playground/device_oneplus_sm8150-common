@@ -33,4 +33,7 @@
     
     <!-- Smooth Display -->
     <bool name="config_show_smooth_display">true</bool>
+
+    <!-- UDFPS lottie animation -->
+    <dimen name="udfps_lottie_translate_y">-500dp</dimen>
 </resources>
