@@ -502,6 +502,9 @@ PRODUCT_PACKAGES += \
     libnl \
     libwfdaac_vendor
 
+# Viper
+$(call inherit-product, packages/apps/ViPER4AndroidFX/config.mk)
+
 # Dex to make OTA go faster
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     dalvik.vm.boot-dex2oat-cpu-set=1,2,3,4,5,6,7 \
