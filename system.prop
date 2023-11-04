@@ -13,6 +13,7 @@ persist.vendor.bt.a2dp.aac_whitelist=false
 
 # Camera
 persist.vendor.camera.privapp.list=com.oneplus.camera
+log.tag.CHIUSECASE=ERROR
 
 # Charger
 ro.charger.enable_suspend=true
