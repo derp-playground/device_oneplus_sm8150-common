@@ -33,14 +33,9 @@ PRODUCT_COPY_FILES += \
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay \
-    $(LOCAL_PATH)/overlay-derp
+    $(LOCAL_PATH)/overlay-rising
 
 PRODUCT_ENFORCE_RRO_TARGETS := *
-
-# Alert slider
-PRODUCT_PACKAGES += \
-    KeyHandler \
-    tri-state-key-calibrate
 
 # A/B
 AB_OTA_POSTINSTALL_CONFIG += \
@@ -213,6 +208,11 @@ PRODUCT_SET_DEBUGFS_RESTRICTIONS := true
 # Dex
 PRODUCT_SYSTEM_PROPERTIES += \
     dalvik.vm.dex2oat64.enabled=true
+
+# Device Settings
+PRODUCT_PACKAGES += \
+    DeviceSettings
+
 
 # Display
 PRODUCT_PACKAGES += \
