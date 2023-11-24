@@ -80,4 +80,12 @@
     <!-- Whether devices suports in-display fingerprint when screen is off -->
     <bool name="config_supportsScreenOffUdfps">true</bool>
 
+    <!-- Default component for QR code scanner -->
+    <string name="config_defaultQrCodeComponent">org.lineageos.aperture/.QrScannerActivity</string>
+
+    <string-array name="config_cameraAuxPackageAllowList" translatable="false">
+        <item>org.lineageos.aperture</item>
+        <item>org.lineageos.aperture.dev</item>
+    </string-array>
+
 </resources>
