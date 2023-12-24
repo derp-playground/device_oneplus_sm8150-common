@@ -432,10 +432,38 @@
         <item>0:2:15</item> <!-- ID0:Fingerprint:Strong -->
     </string-array>
 
-    <!-- SQLite -->
-    <string name="db_default_journal_mode">MEMORY</string>
-    <string name="db_default_sync_mode">OFF</string>
-    <string name="db_wal_sync_mode">OFF</string>
+    <!-- Indicate available ColorDisplayManager.COLOR_MODE_xxx. -->
+    <integer-array name="config_availableColorModes">
+        <item>0</item> <!-- COLOR_MODE_NATURAL   -->
+        <item>1</item> <!-- COLOR_MODE_BOOSTED   -->
+        <item>2</item> <!-- COLOR_MODE_SATURATED   -->
+    </integer-array>
+
+    <!-- The following two arrays specify which color space to use for display composition when a
+         certain color mode is active.
+         Composition color spaces are defined in android.view.Display.COLOR_MODE_xxx, and color
+         modes are defined in ColorDisplayManager.COLOR_MODE_xxx and
+         ColorDisplayManager.VENDOR_COLOR_MODE_xxx.
+         The color space COLOR_MODE_DEFAULT (0) lets the system select the most appropriate
+         composition color space for currently displayed content. Other values (e.g.,
+         COLOR_MODE_SRGB) override system selection; these other color spaces must be supported by
+         the device for for display composition.
+         If a color mode does not have a corresponding color space specified in this array, the
+         currently set composition color space will not be modified.-->
+    <integer-array name="config_displayCompositionColorModes">
+        <item>0</item> <!-- COLOR_MODE_NATURAL   -->
+        <item>1</item> <!-- COLOR_MODE_BOOSTED   -->
+        <item>2</item> <!-- COLOR_MODE_SATURATED   -->
+    </integer-array>
+
+    <integer-array name="config_displayCompositionColorSpaces">
+        <item>0</item> <!-- COLOR_MODE_DEFAULT -->
+        <item>0</item> <!-- COLOR_MODE_DEFAULT -->
+        <item>0</item> <!-- COLOR_MODE_DEFAULT -->
+    </integer-array>
+
+    <!-- Whether or not wcg mode should be enabled on this device -->
+    <bool name="config_enableWcgMode">true</bool>
 
     <!-- Default list of files pinned by the Pinner Service -->
     <string-array translatable="false" name="config_defaultPinnerServiceFiles">
@@ -456,7 +484,7 @@
         <item>"/system/system_ext/lib64/liblayerext.qti.so"</item>
         <item>"/system/system_ext/lib64/libpenguin.so"</item>
         <item>"/system/system_ext/lib64/libpenguin_impl.so"</item>
-        <item>"/system/system_ext/priv-app/SystemUI/SystemUI.apk"</item>
+        <item>"/system/system_ext/priv-app/SystemUIGoogle/SystemUIGoogle.apk"</item>
         <item>"/vendor/lib64/libcamxexternalformatutils.so"</item>
         <item>"/vendor/lib64/libipebpsstriping170.so"</item>
         <item>"/vendor/lib64/libipebpsstriping.so"</item>
@@ -494,7 +522,7 @@
         <item>"/apex/com.android.art/javalib/core-oj.jar"</item>
         <item>"/apex/com.android.art/javalib/core-libart.jar"</item>
         <item>"/apex/com.android.media/javalib/updatable-media.jar"</item>
-        <item>"/system_ext/priv-app/SystemUIGoogle/SystemUIGoogle.apk"</item>
+        <item>"/system_ext/priv-app/SystemUI/SystemUI.apk"</item>
         <item>"/system/bin/surfaceflinger"</item>
     </string-array>
 
@@ -518,10 +546,6 @@
          Exempted from privacy indicators. -->
      <string name="config_systemTelephonyPackage" translatable="false">com.qualcomm.qti.cne</string>
 
-    <!-- Default refresh rate in the zone defined by brightness and ambient thresholds.
-         If non-positive, then the refresh rate is unchanged even if thresholds are configured. -->
-    <integer name="config_defaultRefreshRateInZone">90</integer>
-
     <!-- Type of the udfps long press sensor. Empty if long press is not supported. -->
     <string name="config_dozeUdfpsLongPressSensorType" translatable="false">org.derp.sensor.udfps</string>
 
@@ -536,36 +560,4 @@
 
     <!-- Maximum strength, in percentage, supported by bright color reduction. -->
     <integer name="config_reduceBrightColorsStrengthMax">120</integer>
-
-    <!-- Indicate available ColorDisplayManager.COLOR_MODE_xxx. -->
-    <integer-array name="config_availableColorModes">
-        <item>0</item> <!-- COLOR_MODE_NATURAL   -->
-        <item>1</item> <!-- COLOR_MODE_BOOSTED   -->
-        <item>3</item> <!-- COLOR_MODE_AUTOMATIC -->
-    </integer-array>
-
-    <!-- The following two arrays specify which color space to use for display composition when a
-         certain color mode is active.
-         Composition color spaces are defined in android.view.Display.COLOR_MODE_xxx, and color
-         modes are defined in ColorDisplayManager.COLOR_MODE_xxx and
-         ColorDisplayManager.VENDOR_COLOR_MODE_xxx.
-         The color space COLOR_MODE_DEFAULT (0) lets the system select the most appropriate
-         composition color space for currently displayed content. Other values (e.g.,
-         COLOR_MODE_SRGB) override system selection; these other color spaces must be supported by
-         the device for for display composition.
-         If a color mode does not have a corresponding color space specified in this array, the
-         currently set composition color space will not be modified.-->
-    <integer-array name="config_displayCompositionColorModes">
-        <item>0</item> <!-- COLOR_MODE_NATURAL   -->
-        <item>1</item> <!-- COLOR_MODE_BOOSTED   -->
-    </integer-array>
-
-    <integer-array name="config_displayCompositionColorSpaces">
-        <item>0</item> <!-- COLOR_MODE_DEFAULT -->
-        <item>0</item> <!-- COLOR_MODE_DEFAULT -->
-    </integer-array>
-
-    <!-- Whether or not wcg mode should be enabled on this device -->
-    <bool name="config_enableWcgMode">true</bool>
-
 </resources>
