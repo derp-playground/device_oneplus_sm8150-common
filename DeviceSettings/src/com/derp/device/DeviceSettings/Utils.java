@@ -17,6 +17,10 @@
 */
 package com.derp.device.DeviceSettings;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.PackageManager.PackageInfoFlags;
 import android.content.res.Resources;
 import android.util.Log;
 
@@ -41,7 +45,7 @@ public class Utils {
             return;
         }
         try {
-            FileOutputStream fos = new FileOutputStream(new File(filename));
+            FileOutputStream fos = new FileOutputStream(filename);
             fos.write(value.getBytes());
             fos.flush();
             fos.close();
@@ -73,7 +77,7 @@ public class Utils {
             return null;
         }
         BufferedReader br = null;
-        String line = null;
+        String line;
         try {
             br = new BufferedReader(new FileReader(filename), 1024);
             line = br.readLine();
@@ -94,7 +98,7 @@ public class Utils {
     public static boolean getFileValueAsBoolean(String filename, boolean defValue) {
         String fileValue = readLine(filename);
         if(fileValue!=null){
-            return (fileValue.equals("0")?false:true);
+            return (!fileValue.equals("0"));
         }
         return defValue;
     }
@@ -124,6 +128,15 @@ public class Utils {
             return defaultValue;
         } else {
             return res.getString(resId);
+        }
+    }
+
+    public static boolean isPackageInstalled(final String name, Context context) {
+        try {
+            context.getPackageManager().getPackageInfo(name, 0);
+            return true;
+        } catch (NameNotFoundException e) {
+            return false;
         }
     }
 }

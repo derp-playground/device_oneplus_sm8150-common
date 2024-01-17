@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2016 The CyanogenMod project
- *               2017 The LineageOS Project
+/*
+ * Copyright (C) 2021 Yet Another AOSP Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +20,10 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.UserHandle;
+import android.view.MenuItem;
 
-import android.preference.PreferenceActivity;
 import android.provider.Settings;
 
 import androidx.preference.ListPreference;
@@ -37,11 +34,12 @@ import androidx.preference.SwitchPreference;
 
 import com.android.internal.derp.hardware.LineageHardwareManager; // Need FWB support
 import com.android.internal.derp.hardware.TouchscreenGesture; // Need FWB support
-
-import java.lang.System;
-
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
 import com.android.settingslib.widget.R;
+
+import java.lang.System;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
         implements PreferenceFragment.OnPreferenceStartFragmentCallback {
@@ -52,13 +50,9 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
 
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, getNewFragment())
+                    .replace(R.id.content_frame, new MainSettingsFragment())
                     .commit();
         }
-    }
-
-    private PreferenceFragment getNewFragment() {
-        return new MainSettingsFragment();
     }
 
     @Override
@@ -67,7 +61,7 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
         Fragment instantiate = Fragment.instantiate(this, preference.getFragment(),
             preference.getExtras());
         getFragmentManager().beginTransaction().replace(
-                R.id.content_frame, instantiate).addToBackStack(preference.getKey()).commit();
+                android.R.id.content, instantiate).addToBackStack(preference.getKey()).commit();
 
         return true;
     }
@@ -79,7 +73,6 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
         private static final String TOUCHSCREEN_GESTURE_TITLE = KEY_TOUCHSCREEN_GESTURE + "_%s_title";
 
         private TouchscreenGesture[] mTouchscreenGestures;
-        private SwitchPreference mGetstureHapticsSwitch;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -94,20 +87,16 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
         private void initTouchscreenGestures() {
             final LineageHardwareManager manager = LineageHardwareManager.getInstance(getContext());
             mTouchscreenGestures = manager.getTouchscreenGestures();
-            mGetstureHapticsSwitch = findPreference(KEY_TOUCHSCREEN_GESTURE_HAPTIC);
+            SwitchPreference getstureHapticsSwitch = findPreference(KEY_TOUCHSCREEN_GESTURE_HAPTIC);
             boolean enabled = Settings.System.getInt(getContext().getContentResolver(),
                     KEY_TOUCHSCREEN_GESTURE_HAPTIC, 1) == 1;
-            mGetstureHapticsSwitch.setChecked(enabled);
-            mGetstureHapticsSwitch.setOnPreferenceChangeListener(
-                    new Preference.OnPreferenceChangeListener() {
-                        @Override
-                        public boolean onPreferenceChange(Preference preference,
-                                Object newValue) {
-                            boolean checked = (Boolean) newValue;
-                            Settings.System.putInt(getContext().getContentResolver(),
-                                    KEY_TOUCHSCREEN_GESTURE_HAPTIC, checked ? 1 : 0);
-                            return true;
-                        }
+            getstureHapticsSwitch.setChecked(enabled);
+            getstureHapticsSwitch.setOnPreferenceChangeListener(
+                    (preference, newValue) -> {
+                        boolean checked = (Boolean) newValue;
+                        Settings.System.putInt(getContext().getContentResolver(),
+                                KEY_TOUCHSCREEN_GESTURE_HAPTIC, checked ? 1 : 0);
+                        return true;
                     });
             final int[] actions = getDefaultGestureActions(getContext(), mTouchscreenGestures);
             for (final TouchscreenGesture gesture : mTouchscreenGestures) {
@@ -132,6 +121,7 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
                 setEntryValues(R.array.touchscreen_gesture_action_values);
                 setDefaultValue(String.valueOf(defaultAction));
 
+                setIconSpaceReserved(true);
                 setSummary("%s");
                 setDialogTitle(R.string.touchscreen_gesture_action_dialog_title);
                 setTitle(Utils.getLocalizedString(
@@ -145,6 +135,9 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
                 if (!manager.setTouchscreenGestureEnabled(mGesture, action > 0)) {
                     return false;
                 }
+                final SharedPreferences.Editor editor = Constants.getDESharedPrefs(mContext).edit();
+                editor.putString(getKey(), String.valueOf(newValue));
+                editor.apply();
                 return super.callChangeListener(newValue);
             }
 
@@ -153,7 +146,6 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
                 if (!super.persistString(value)) {
                     return false;
                 }
-                final int action = Integer.parseInt(String.valueOf(value));
                 sendUpdateBroadcast(mContext, mTouchscreenGestures);
                 return true;
             }
@@ -172,6 +164,41 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
             }
 
             sendUpdateBroadcast(context, gestures);
+        }
+
+        public static void migrateTouchscreenGestureStates(final Context context) {
+            if (!isTouchscreenGesturesSupported(context)) {
+                return;
+            }
+
+            final LineageHardwareManager manager = LineageHardwareManager.getInstance(context);
+            final TouchscreenGesture[] gestures = manager.getTouchscreenGestures();
+            final int[] actionList = buildOldActionList(context, gestures);
+            final SharedPreferences oldPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            final SharedPreferences.Editor oldPrefsEditor = oldPrefs.edit();
+            final SharedPreferences.Editor newPrefsEditor = Constants.getDESharedPrefs(context).edit();
+            for (final TouchscreenGesture gesture : gestures) {
+                final String key = buildPreferenceKey(gesture);
+                final String oldValue = oldPrefs.getString(key, null);
+                if (oldValue == null) continue;
+                newPrefsEditor.putString(key, oldValue);
+                oldPrefsEditor.remove(key);
+            }
+            newPrefsEditor.commit();
+            oldPrefsEditor.commit();
+        }
+
+        public static List<String> getPrefKeys(final Context context) {
+            if (!isTouchscreenGesturesSupported(context)) {
+                return null;
+            }
+
+            final LineageHardwareManager manager = LineageHardwareManager.getInstance(context);
+            final TouchscreenGesture[] gestures = manager.getTouchscreenGestures();
+            final List<String> result = new ArrayList<>();
+            for (final TouchscreenGesture gesture : gestures)
+                result.add(buildPreferenceKey(gesture));
+            return result;
         }
 
         private static boolean isTouchscreenGesturesSupported(final Context context) {
@@ -194,9 +221,20 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
 
         private static int[] buildActionList(final Context context,
                 final TouchscreenGesture[] gestures) {
+            final SharedPreferences prefs = Constants.getDESharedPrefs(context);
+            return buildActions(context, gestures, prefs);
+        }
+
+        private static int[] buildOldActionList(final Context context,
+                final TouchscreenGesture[] gestures) {
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            return buildActions(context, gestures, prefs);
+        }
+
+        private static int[] buildActions(final Context context,
+                final TouchscreenGesture[] gestures, final SharedPreferences prefs) {
             final int[] result = new int[gestures.length];
             final int[] defaultActions = getDefaultGestureActions(context, gestures);
-            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             for (final TouchscreenGesture gesture : gestures) {
                 final String key = buildPreferenceKey(gesture);
                 final String defaultValue = String.valueOf(defaultActions[gesture.id]);
@@ -237,5 +275,14 @@ public class TouchscreenGestureSettings extends CollapsingToolbarBaseActivity
         public void onDestroy() {
             super.onDestroy();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

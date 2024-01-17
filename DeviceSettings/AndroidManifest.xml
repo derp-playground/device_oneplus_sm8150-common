@@ -23,35 +23,25 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="com.android.systemui.permission.PLUGIN" />
 
     <protected-broadcast android:name="com.derp.device.DeviceSettings.UPDATE_SETTINGS" />
-
-    <protected-broadcast android:name="com.derp.device.DeviceSettings.UPDATE_SLIDER_POSITION" />
-
-    <uses-sdk
-        android:minSdkVersion="28"
-        android:targetSdkVersion="30" />
+    <protected-broadcast android:name="com.derp.device.DeviceSettings.UPDATE_SLIDER" />
+    <protected-broadcast android:name="android.intent.action.SCREEN_CAMERA_GESTURE" />
+    <protected-broadcast android:name="com.android.systemui.doze.pulse" />
 
     <application
         android:icon="@drawable/ic_settings_device"
-        android:label="@string/device_title">
-
-        <receiver android:name="com.derp.device.DeviceSettings.Startup" android:exported="true">
-            <intent-filter android:priority="1000" >
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+        android:label="@string/device_title"
+        android:theme="@style/Theme.SubSettingsBase">
 
         <!-- Device Settings -->
         <activity
             android:name=".DeviceSettingsActivity"
             android:label="@string/device_title"
-            android:exported="true"
-            android:theme="@style/Theme.SubSettingsBase">
+            android:exported="true">
             <intent-filter>
-                <action android:name="com.android.settings.action.EXTRA_SETTINGS" />
-            </intent-filter>
-            <intent-filter>
+                <action android:name="com.android.settings.action.IA_SETTINGS" />
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
             <meta-data
@@ -64,19 +54,102 @@
                 android:resource="@string/device_summary" />
         </activity>
 
-        <activity android:name=".DeviceSettings" />
-        <activity android:name=".KeyHandler" />
+        <activity android:name=".KeyHandler" android:exported="false" />
 
         <activity
             android:name=".TouchscreenGestureSettings"
             android:label="@string/touchscreen_gesture_settings_title"
-            android:exported="true"
-            android:theme="@style/Theme.SubSettingsBase">
+            android:theme="@style/Theme.SubSettingsBase"
+            android:exported="false">
         </activity>
+
+        <receiver
+            android:name="com.derp.device.DeviceSettings.Startup"
+            android:directBootAware="true"
+            android:exported="false" >
+            <intent-filter android:priority="100" >
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Quick Settings Tiles -->
+        <service
+            android:name="com.derp.device.DeviceSettings.DCModeTileService"
+            android:icon="@drawable/ic_dimming_off"
+            android:label="@string/tile_dc_mode"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.derp.device.DeviceSettings.HBMModeTileService"
+            android:icon="@drawable/ic_hbm_tile"
+            android:label="@string/tile_hbm_mode"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.derp.device.DeviceSettings.RefreshRateTileService"
+            android:icon="@drawable/ic_refresh_tile_60"
+            android:label="@string/tile_refresh_rate"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service android:name="com.derp.device.DeviceSettings.FPSInfoService"
+                android:exported="false">
+        </service>
+
+        <service
+            android:name=".FPSTileService"
+            android:icon="@drawable/ic_fps"
+            android:label="@string/fps_info_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".ReadingModeTileService"
+            android:icon="@drawable/ic_reading_enabled"
+            android:label="@string/reading_mode_title"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <service android:name="com.derp.device.DeviceSettings.HBMModeService"
+            android:exported="false" />
+
+        <service
+            android:name=".AlertSliderPlugin"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.android.systemui.action.PLUGIN_OVERLAY" />
+            </intent-filter>
+        </service>
 
         <!-- Search indexing -->
         <provider
-            android:name=".ConfigPanelSearchIndexablesProvider"
+            android:name=".SettingsSearchIndexablesProvider"
             android:authorities="com.derp.device"
             android:multiprocess="false"
             android:grantUriPermissions="true"

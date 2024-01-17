@@ -11,14 +11,7 @@
     limitations under the License.
 -->
 <resources>
-
-    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.Settings">
-        <item name="preferenceTheme">@style/PreferenceTheme</item>
+    <style name="alert_slider_theme" parent="Theme.MaterialComponents.DayNight">
+        <item name="android:windowIsFloating">true</item>
     </style>
-
-    <style name="PreferenceTheme" parent="@style/PreferenceTheme.SettingsLib">
-    </style>
-
-    <style name="TextAppearance.Medium" parent="@android:style/TextAppearance.Material.Medium" />
-
 </resources>
