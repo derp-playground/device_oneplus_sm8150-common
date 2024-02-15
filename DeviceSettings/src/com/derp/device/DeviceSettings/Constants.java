@@ -25,7 +25,6 @@ import android.content.SharedPreferences;
 import android.os.UserHandle;
 import android.provider.Settings;
 import androidx.preference.SwitchPreference;
-import androidx.preference.PreferenceManager;
 
 import android.media.AudioManager;
 
@@ -33,11 +32,24 @@ public class Constants {
 
     // Broadcast action for settings update
     static final String UPDATE_PREFS_ACTION = "com.derp.device.DeviceSettings.UPDATE_SETTINGS";
+    static final String SLIDER_UPDATE_ACTION = "com.derp.device.DeviceSettings.UPDATE_SLIDER";
+
+    // Shared preferences
+    private static final String DE_PREF_FILE_NAME = "device_settings";
 
     // Preference keys
+    public static final String NOTIF_DIALOG_ENABLED_KEY = "slider_dialog_enabled";
+    public static final String NOTIF_DIALOG_DOZE_KEY = "slider_doze_enabled";
     public static final String NOTIF_SLIDER_TOP_KEY = "keycode_top_position";
     public static final String NOTIF_SLIDER_MIDDLE_KEY = "keycode_middle_position";
     public static final String NOTIF_SLIDER_BOTTOM_KEY = "keycode_bottom_position";
+    public static final String NOTIF_SLIDER_MUTE_MEDIA_KEY = "slider_mute_media";
+    private static final String NOTIF_SLIDER_MUTE_MEDIA_LEVEL_KEY = "slider_mute_media_level";
+
+    // Slider positions
+    public static final int POSITION_TOP = 603;
+    public static final int POSITION_MIDDLE = 602;
+    public static final int POSITION_BOTTOM = 601;
 
     // Button prefs
     public static final String NOTIF_SLIDER_TOP_PREF = "pref_keycode_top_position";
@@ -70,10 +82,6 @@ public class Constants {
     public static final Map<Integer, String> sKeyMap = new HashMap<>();
     public static final Map<String, Integer> sKeyDefaultMap = new HashMap<>();
 
-    public static final String ACTION_UPDATE_SLIDER_POSITION
-            = "com.derp.device.DeviceSettings.UPDATE_SLIDER_POSITION";
-    public static final String EXTRA_SLIDER_POSITION = "position";
-
     // Broadcast extra: keycode mapping (int[]: key = gesture ID, value = keycode)
     static final String UPDATE_EXTRA_KEYCODE_MAPPING = "keycode_mappings";
     // Broadcast extra: assigned actions (int[]: key = gesture ID, value = action)
@@ -84,9 +92,9 @@ public class Constants {
         sStringKeyPreferenceMap.put(NOTIF_SLIDER_MIDDLE_KEY, NOTIF_SLIDER_MIDDLE_PREF);
         sStringKeyPreferenceMap.put(NOTIF_SLIDER_BOTTOM_KEY, NOTIF_SLIDER_BOTTOM_PREF);
 
-        sKeyMap.put(603, NOTIF_SLIDER_TOP_KEY);
-        sKeyMap.put(602, NOTIF_SLIDER_MIDDLE_KEY);
-        sKeyMap.put(601, NOTIF_SLIDER_BOTTOM_KEY);
+        sKeyMap.put(POSITION_TOP, NOTIF_SLIDER_TOP_KEY);
+        sKeyMap.put(POSITION_MIDDLE, NOTIF_SLIDER_MIDDLE_KEY);
+        sKeyMap.put(POSITION_BOTTOM, NOTIF_SLIDER_BOTTOM_KEY);
 
         sKeyDefaultMap.put(NOTIF_SLIDER_TOP_KEY, KEY_VALUE_TOTAL_SILENCE);
         sKeyDefaultMap.put(NOTIF_SLIDER_MIDDLE_KEY, KEY_VALUE_VIBRATE);
@@ -101,5 +109,35 @@ public class Constants {
     public static void setPreferenceInt(Context context, String key, int value) {
         Settings.System.putIntForUser(context.getContentResolver(),
                 sStringKeyPreferenceMap.get(key), value, UserHandle.USER_CURRENT);
+    }
+
+    public static void setLastMediaLevel(Context context, int level) {
+        Settings.System.putIntForUser(context.getContentResolver(),
+                NOTIF_SLIDER_MUTE_MEDIA_LEVEL_KEY, level, UserHandle.USER_CURRENT);
+    }
+
+    public static int getLastMediaLevel(Context context) {
+        return Settings.System.getIntForUser(context.getContentResolver(),
+                NOTIF_SLIDER_MUTE_MEDIA_LEVEL_KEY, 80, UserHandle.USER_CURRENT);
+    }
+
+    public static boolean getIsMuteMediaEnabled(Context context) {
+        return Settings.System.getIntForUser(context.getContentResolver(),
+                NOTIF_SLIDER_MUTE_MEDIA_KEY, 0, UserHandle.USER_CURRENT) == 1;
+    }
+
+    public static boolean getIsSliderDialogEnabled(Context context) {
+        return Settings.System.getIntForUser(context.getContentResolver(),
+                NOTIF_DIALOG_ENABLED_KEY, 1, UserHandle.USER_CURRENT) == 1;
+    }
+
+    public static boolean getIsSliderDozeEnabled(Context context) {
+        return Settings.System.getIntForUser(context.getContentResolver(),
+                NOTIF_DIALOG_DOZE_KEY, 1, UserHandle.USER_CURRENT) == 1;
+    }
+
+    public static SharedPreferences getDESharedPrefs(Context context) {
+        return context.createDeviceProtectedStorageContext()
+                .getSharedPreferences(DE_PREF_FILE_NAME, Context.MODE_PRIVATE);
     }
 }

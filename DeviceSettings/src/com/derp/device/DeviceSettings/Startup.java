@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2013 The OmniROM Project
+* Copyright (C) 2021 Yet Another AOSP Project
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,49 +17,78 @@
 */
 package com.derp.device.DeviceSettings;
 
+import static android.content.Intent.ACTION_BOOT_COMPLETED;
+import static android.content.Intent.ACTION_LOCKED_BOOT_COMPLETED;
+
+import static com.derp.device.DeviceSettings.FPSInfoService.PREF_KEY_FPS_STATE;
+import static com.derp.device.DeviceSettings.ModeSwitch.DCModeSwitch.KEY_DC_SWITCH;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.provider.Settings;
-import android.text.TextUtils;
 import androidx.preference.PreferenceManager;
+
+import com.derp.device.DeviceSettings.ModeSwitch.*;
+
+import java.util.List;
+import java.util.Map;
 
 public class Startup extends BroadcastReceiver {
 
-    private static final String TAG = "BootReceiver";
-    private static final String ONE_TIME_TUNABLE_RESTORE = "hardware_tunable_restored";
+    private static final String KEY_MIGRATION_DONE = "migration_done_2";
+
+    private static final Map<String, String> sKeyFileMap = Map.of(
+        // DC Dimming
+        KEY_DC_SWITCH, DCModeSwitch.getFile()
+    );
 
     private void restore(String file, boolean enabled) {
-        if (file == null) {
-            return;
-        }
-        if (enabled) {
-            Utils.writeValue(file, "1");
-        }
-    }
-
-    private void restore(String file, String value) {
-        if (file == null) {
-            return;
-        }
-        Utils.writeValue(file, value);
+        if (file == null) return;
+        if (enabled) Utils.writeValue(file, "1");
     }
 
     @Override
-    public void onReceive(final Context context, final Intent bootintent) {
-        boolean enabled = false;
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        VibratorStrengthPreference.restore(context);
-    }
+    public void onReceive(final Context context, final Intent intent) {
+        final SharedPreferences dePrefs = Constants.getDESharedPrefs(context);
 
-    private boolean hasRestoredTunable(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getBoolean(ONE_TIME_TUNABLE_RESTORE, false);
-    }
+        if (intent.getAction().equals(ACTION_BOOT_COMPLETED)) {
+            if (!dePrefs.getBoolean(KEY_MIGRATION_DONE, false)) {
+                // migration of old user encrypted preferences
+                final SharedPreferences oldPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+                final SharedPreferences.Editor oldPrefsEditor = oldPrefs.edit();
+                final SharedPreferences.Editor dePrefsEditor = dePrefs.edit();
 
-    private void setRestoredTunable(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        preferences.edit().putBoolean(ONE_TIME_TUNABLE_RESTORE, true).apply();
+                for (String prefKey : sKeyFileMap.keySet()) {
+                    if (!oldPrefs.contains(prefKey)) continue;
+                    dePrefsEditor.putBoolean(prefKey, oldPrefs.getBoolean(prefKey, false));
+                    oldPrefsEditor.remove(prefKey);
+                }
+
+                dePrefsEditor.putBoolean(KEY_MIGRATION_DONE, true);
+                // must use commit (and not apply) because of what follows!
+                dePrefsEditor.commit();
+                oldPrefsEditor.commit();
+
+            }
+        }
+
+
+        // restoring state from DE shared preferences
+        for (Map.Entry<String, String> set : sKeyFileMap.entrySet()) {
+            final String prefKey = set.getKey();
+            final String file = set.getValue();
+            restore(file, dePrefs.getBoolean(prefKey, false));
+        }
+
+        // reset prefs that reflect a state that does not retain a reboot
+        Map<String,?> keys = dePrefs.getAll();
+        for (Map.Entry<String,?> entry : keys.entrySet()) {
+            final String key = entry.getKey();
+            if (sKeyFileMap.containsKey(key)) continue;
+            if (KEY_MIGRATION_DONE.equals(key)) continue;
+            dePrefs.edit().remove(key).commit();
+        }
     }
 }
