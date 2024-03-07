@@ -35,7 +35,7 @@ import androidx.preference.SwitchPreference;
 import com.android.internal.derp.hardware.LineageHardwareManager; // Need FWB support
 import com.android.internal.derp.hardware.TouchscreenGesture; // Need FWB support
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
-import com.android.settingslib.widget.R;
+import com.android.settingslib.collapsingtoolbar.R;
 
 import java.lang.System;
 import java.util.ArrayList;
