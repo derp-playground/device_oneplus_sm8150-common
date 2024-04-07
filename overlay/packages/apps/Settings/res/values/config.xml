@@ -36,4 +36,7 @@
 
     <!-- UDFPS lottie animation -->
     <dimen name="udfps_lottie_translate_y">-500dp</dimen>
+
+    <!-- Whether to display the "Enable wireless display" menu -->
+    <bool name="config_show_wifi_display_enable_menu">false</bool>
 </resources>
