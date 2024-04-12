@@ -274,6 +274,9 @@ PRODUCT_PACKAGES += \
     libavservices_minijail \
     libavservices_minijail.vendor
 
+# Use mimalloc allocator instead of jemalloc
+PRODUCT_USE_MIMALLOC := true
+
 # Net
 PRODUCT_PACKAGES += \
     android.system.net.netd@1.1.vendor
