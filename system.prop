@@ -108,3 +108,4 @@ persist.sys.wfd.virtual=0
 # Adb
 persist.service.adb.enable=1                                                    
 persist.service.debuggable=1
+ro.product.device=hotdogb
