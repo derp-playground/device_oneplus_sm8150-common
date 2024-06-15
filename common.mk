@@ -508,6 +508,10 @@ PRODUCT_PACKAGES += \
     libprocessgroup.vendor:32 \
     libwfdaac_vendor
 
+# Disable configstore
+PRODUCT_PACKAGES += \
+    disable_configstore
+
 # Dex to make OTA go faster
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     dalvik.vm.boot-dex2oat-cpu-set=1,2,3,4,5,6,7 \
