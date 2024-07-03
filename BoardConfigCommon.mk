@@ -74,7 +74,7 @@ TARGET_SURFACEFLINGER_UDFPS_LIB := //hardware/oplus:libudfps_extension.oplus
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
     $(COMMON_PATH)/device_framework_matrix.xml \
     hardware/qcom-caf/common/vendor_framework_compatibility_matrix.xml \
-    vendor/lineage/config/device_framework_matrix.xml
+    vendor/derp/config/device_framework_matrix.xml
 DEVICE_MATRIX_FILE := hardware/qcom-caf/common/compatibility_matrix.xml
 DEVICE_MANIFEST_FILE := $(COMMON_PATH)/manifest.xml
 
@@ -86,16 +86,21 @@ BOARD_KERNEL_CMDLINE := \
     androidboot.memcg=1 \
     androidboot.usbcontroller=a600000.dwc3 \
     androidboot.vbmeta.avb_version=1.0 \
+    kpti=off \
     loop.max_part=7 \
     lpm_levels.sleep_disabled=1 \
     msm_rtb.filter=0x237 \
     service_locator.enable=1 \
-    swiotlb=2048
+    swiotlb=2048 \
+    cgroup_disable=pressure
 BOARD_KERNEL_IMAGE_NAME := Image-dtb
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_KERNEL_SEPARATED_DTBO := true
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
 BOARD_RAMDISK_USE_LZ4 := true
+TARGET_KERNEL_CLANG_VERSION := r498229b
+TARGET_KERNEL_LLVM_BINUTILS := 1
+TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_CONFIG := lineage_sm8150_defconfig
 TARGET_KERNEL_SOURCE := kernel/oneplus/sm8150
 

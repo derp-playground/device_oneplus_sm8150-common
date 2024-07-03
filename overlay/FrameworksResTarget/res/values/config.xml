@@ -48,5 +48,59 @@
     <string-array name="config_biometric_sensors" translatable="false" >
         <item>0:2:15</item>
     </string-array>
+    
+    <!-- Whether device has physical tri state switch -->
+    <bool name="config_hasAlertSlider">true</bool>
 
+    <!-- The location of the devices physical tri state switch
+         0: Left side
+         1: Right side -->
+    <integer name="config_alertSliderLocation">1</integer>
+
+    <!-- Whether key handler sends intent when changing slider position -->
+    <string name="config_alertSliderIntent">org.lineageos.settings.slider.UPDATE_SLIDER_POSITION</string>
+
+     <string-array name="config_deviceKeyHandlerLibs" translatable="false">
+        <item>/system_ext/app/KeyHandler/KeyHandler.apk</item>
+        <item>/system_ext/priv-app/OnePlusCameraHelper/OnePlusCameraHelper.apk</item>
+        <item>/system_ext/priv-app/TouchGestures/TouchGestures.apk</item>
+    </string-array>
+
+    <!-- Names of the key handler classes -->
+    <string-array name="config_deviceKeyHandlerClasses" translatable="false">
+        <item>org.lineageos.settings.device.KeyHandler</item>
+        <item>org.lineageos.camerahelper.KeyHandler</item>
+        <item>com.android.touch.gestures.KeyHandler</item>
+    </string-array>
+    
+    <!-- Hardware keys present on the device, stored as a bit field.
+         This integer should equal the sum of the corresponding value for each
+         of the following keys present:
+             1 - Home
+             2 - Back
+             4 - Menu
+             8 - Assistant (search)
+            16 - App switch
+            32 - Camera
+            64 - Volume rocker
+         For example, a device with Home, Back and Menu keys would set this
+         config to 7. -->
+    <integer name="config_deviceHardwareKeys">64</integer>
+
+    <!-- Hardware keys present on the device with the ability to wake, stored as a bit field.
+         This integer should equal the sum of the corresponding value for each
+         of the following keys present:
+             1 - Home
+             2 - Back
+             4 - Menu
+             8 - Assistant (search)
+            16 - App switch
+            32 - Camera
+            64 - Volume rocker
+         For example, a device with Home, Back and Menu keys would set this
+         config to 7. -->
+    <integer name="config_deviceHardwareWakeKeys">64</integer>
+
+    <!-- Whether device has screen with higher aspect ratio -->
+    <bool name="config_haveHigherAspectRatioScreen">true</bool>
 </resources>
