@@ -263,8 +263,9 @@ PRODUCT_PACKAGES += \
     CarrierConfigResCommon \
     FrameworksResTarget \
     OPlusFrameworksResCommon \
-    OPlusSystemUIResCommon \
     SimpleDeviceConfigCommon
+    OPlusSettingsResCommon \
+    OPlusSystemUIResCommon
 
 # Partitions
 PRODUCT_PACKAGES += \
